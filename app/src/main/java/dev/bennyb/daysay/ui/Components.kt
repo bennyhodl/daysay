@@ -32,6 +32,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 
@@ -46,6 +47,7 @@ val Gutter = 24.dp
 @Composable
 fun Page(
     title: String,
+    titleIcon: Int? = null,
     onBack: (() -> Unit)? = null,
     centered: Boolean = false,
     actions: @Composable () -> Unit = {},
@@ -69,11 +71,21 @@ fun Page(
                         Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Back")
                     }
                 }
-                Text(
-                    title,
-                    style = if (onBack == null) EyebrowStyle else MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.weight(1f),
-                )
+                if (titleIcon == null) {
+                    Text(
+                        title,
+                        style = if (onBack == null) EyebrowStyle else MaterialTheme.typography.titleLarge,
+                        modifier = Modifier.weight(1f),
+                    )
+                } else {
+                    Box(modifier = Modifier.weight(1f)) {
+                        Icon(
+                            painter = painterResource(titleIcon),
+                            contentDescription = title,
+                            modifier = Modifier.size(44.dp),
+                        )
+                    }
+                }
                 actions()
             }
             BoxWithConstraints(modifier = Modifier.weight(1f).fillMaxWidth()) {

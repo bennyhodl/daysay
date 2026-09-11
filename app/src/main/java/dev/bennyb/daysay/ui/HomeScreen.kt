@@ -52,6 +52,7 @@ fun HomeScreen(
 
     Page(
         title = "Daysay",
+        titleIcon = R.drawable.ic_daysay_mark,
         centered = true,
         actions = {
             IconButton(onClick = onOpenHistory) { Icon(painterResource(R.drawable.ic_history), contentDescription = "History") }
