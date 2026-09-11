@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.List
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
@@ -55,7 +54,7 @@ fun HomeScreen(
         title = "Daysay",
         centered = true,
         actions = {
-            IconButton(onClick = onOpenHistory) { Icon(Icons.AutoMirrored.Outlined.List, contentDescription = "History") }
+            IconButton(onClick = onOpenHistory) { Icon(painterResource(R.drawable.ic_history), contentDescription = "History") }
             IconButton(onClick = onOpenSettings) { Icon(Icons.Outlined.Settings, contentDescription = "Settings") }
         },
     ) {
