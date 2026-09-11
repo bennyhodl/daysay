@@ -9,9 +9,11 @@ import android.util.Log
 import dev.bennyb.daysay.audio.MicForegroundService
 import dev.bennyb.daysay.audio.Recorder
 import dev.bennyb.daysay.cleanup.CleanupClient
+import dev.bennyb.daysay.engine.LocalParakeetEngine
 import dev.bennyb.daysay.engine.LocalWhisperEngine
 import dev.bennyb.daysay.engine.RemoteTranscriptionEngine
 import dev.bennyb.daysay.engine.TranscriptionEngine
+import dev.bennyb.daysay.model.Engine
 import dev.bennyb.daysay.model.ModelCatalog
 import dev.bennyb.daysay.model.ModelManager
 import dev.bennyb.daysay.model.TranscriptStore
@@ -192,8 +194,10 @@ object Dictation {
             ?: throw IllegalStateException("Unknown model ${settings.model}")
         val file = ModelManager.file(app, model)
         if (!file.exists()) throw IllegalStateException("${model.name} is not downloaded. Open Daysay settings.")
-        LocalWhisperEngine.modelFile = file
-        return LocalWhisperEngine
+        return when (model.engine) {
+            Engine.WHISPER -> LocalWhisperEngine.also { it.modelFile = file }
+            Engine.PARAKEET -> LocalParakeetEngine.also { it.modelFile = file }
+        }
     }
 
     /** Always copies to the clipboard, then tries to put the text into the focused field. */
