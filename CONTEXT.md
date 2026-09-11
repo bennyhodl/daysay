@@ -54,6 +54,13 @@
 - The floating panel keeps one height in every state. Only Cancel is live while processing.
 - Google speech services are not used.
 
+## Release
+
+- `targetSdk` 36, as Google Play requires. `compileSdk` 37.2.
+- Release builds are minified. `app/proguard-rules.pro` keeps the JNI bridge.
+- The accessibility disclosure dialog is shown before every trip to the accessibility settings.
+  It is a Play policy requirement. Keep its text in step with `play/PRIVACY.md`.
+
 ## Target
 
 Daylight DC-1. Android 13, API 33, arm64-v8a, MediaTek Helio G99. `minSdk` is 33.

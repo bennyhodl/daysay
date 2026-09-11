@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Builds the debug APK. Pass "install" to also install it on the connected device.
+# Pass "release" to build the signed Android App Bundle for Google Play (needs keystore.properties).
 set -euo pipefail
 cd "$(dirname "$0")"
 
@@ -38,8 +39,17 @@ if (( ${#missing[@]} )); then
   "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "${missing[@]}"
 fi
 
-./gradlew assembleDebug
-echo "APK: app/build/outputs/apk/debug/app-debug.apk"
-if [[ "${1:-}" == "install" ]]; then
-  adb install -r app/build/outputs/apk/debug/app-debug.apk
-fi
+case "${1:-}" in
+  release)
+    [[ -f keystore.properties ]] || { echo "keystore.properties is missing. See play/RELEASE.md."; exit 1; }
+    ./gradlew bundleRelease
+    echo "AAB: app/build/outputs/bundle/release/app-release.aab"
+    ;;
+  *)
+    ./gradlew assembleDebug
+    echo "APK: app/build/outputs/apk/debug/app-debug.apk"
+    if [[ "${1:-}" == "install" ]]; then
+      adb install -r app/build/outputs/apk/debug/app-debug.apk
+    fi
+    ;;
+esac

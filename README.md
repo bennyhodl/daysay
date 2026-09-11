@@ -31,6 +31,7 @@ Requires JDK 17 or later and the Android SDK with `cmdline-tools`.
 ```bash
 ./build.sh          # builds the debug APK
 ./build.sh install  # also installs it on the connected device
+./build.sh release  # builds the signed bundle for Google Play
 ```
 
 The script finds the JDK through `JAVA_HOME`, then Homebrew OpenJDK on macOS, then
@@ -75,6 +76,12 @@ Measured with `adb shell getevent -lq` on a DC-1:
 
 Both are plain keys that the system does not reserve, so the accessibility service can see and
 consume them.
+
+## Google Play
+
+The `play/` folder has the privacy policy, the store listing text with answers for the
+accessibility and foreground service declarations, the listing art, and a release checklist in
+`play/RELEASE.md`. Release builds are signed with an upload key that stays outside the repo.
 
 ## License
 

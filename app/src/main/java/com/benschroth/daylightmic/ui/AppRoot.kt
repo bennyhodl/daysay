@@ -16,9 +16,23 @@ class SetupActions(
 )
 
 @Composable
-fun AppRoot(micGranted: Boolean, accessibilityEnabled: Boolean, setup: SetupActions) {
+fun AppRoot(micGranted: Boolean, accessibilityEnabled: Boolean, actions: SetupActions) {
     var screen by rememberSaveable { mutableStateOf(Screen.HOME) }
+    var showDisclosure by rememberSaveable { mutableStateOf(false) }
     BackHandler(enabled = screen != Screen.HOME) { screen = Screen.HOME }
+
+    // The disclosure comes before the system settings, every time, until the service is on.
+    val setup = SetupActions(
+        onRequestMic = actions.onRequestMic,
+        onOpenAccessibilitySettings = { showDisclosure = true },
+        onOpenAppInfo = actions.onOpenAppInfo,
+    )
+    if (showDisclosure) {
+        AccessibilityDisclosureDialog(
+            onAgree = { showDisclosure = false; actions.onOpenAccessibilitySettings() },
+            onDismiss = { showDisclosure = false },
+        )
+    }
     when (screen) {
         Screen.HOME -> HomeScreen(
             micGranted = micGranted,

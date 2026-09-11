@@ -32,7 +32,7 @@ class MainActivity : ComponentActivity() {
                 AppRoot(
                     micGranted = micGranted,
                     accessibilityEnabled = accessibilityEnabled,
-                    setup = SetupActions(
+                    actions = SetupActions(
                         onRequestMic = { requestMic.launch(Manifest.permission.RECORD_AUDIO) },
                         onOpenAccessibilitySettings = { startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) },
                         onOpenAppInfo = {
