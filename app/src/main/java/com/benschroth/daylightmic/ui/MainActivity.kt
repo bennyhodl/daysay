@@ -29,16 +29,18 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             PaperTheme {
-                SettingsScreen(
+                AppRoot(
                     micGranted = micGranted,
                     accessibilityEnabled = accessibilityEnabled,
-                    onRequestMic = { requestMic.launch(Manifest.permission.RECORD_AUDIO) },
-                    onOpenAccessibilitySettings = { startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) },
-                    onOpenAppInfo = {
-                        startActivity(
-                            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", packageName, null))
-                        )
-                    },
+                    setup = SetupActions(
+                        onRequestMic = { requestMic.launch(Manifest.permission.RECORD_AUDIO) },
+                        onOpenAccessibilitySettings = { startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) },
+                        onOpenAppInfo = {
+                            startActivity(
+                                Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", packageName, null))
+                            )
+                        },
+                    ),
                 )
             }
         }

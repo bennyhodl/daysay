@@ -14,6 +14,7 @@ import com.benschroth.daylightmic.engine.RemoteTranscriptionEngine
 import com.benschroth.daylightmic.engine.TranscriptionEngine
 import com.benschroth.daylightmic.model.ModelCatalog
 import com.benschroth.daylightmic.model.ModelManager
+import com.benschroth.daylightmic.model.TranscriptStore
 import com.benschroth.daylightmic.settings.AppSettings
 import com.benschroth.daylightmic.settings.EngineKind
 import com.benschroth.daylightmic.settings.SettingsStore
@@ -62,6 +63,9 @@ object Dictation {
     val lastKey = MutableStateFlow<KeySeen?>(null)
     val lastTranscript = MutableStateFlow("")
 
+    /** Microphone level in 0..1 while listening. Drives the waveform visualisers. */
+    val level = MutableStateFlow(0f)
+
     private var recorder: Recorder? = null
     private var work: Job? = null
     private var resetJob: Job? = null
@@ -92,6 +96,7 @@ object Dictation {
             r = recorder
             recorder = null
             MicForegroundService.stop(app)
+            level.value = 0f
             setState(DictationState.Idle)
         }
         // Joining the capture thread can take a moment. Keep it off the caller's thread.
@@ -105,7 +110,8 @@ object Dictation {
             return
         }
         val settings = SettingsStore.current
-        val r = Recorder(settings.maxRecordSeconds.coerceIn(5, 600)) { toggle() }
+        level.value = 0f
+        val r = Recorder(settings.maxRecordSeconds.coerceIn(5, 600), level) { toggle() }
         try {
             r.start()
         } catch (t: Throwable) {
@@ -134,6 +140,7 @@ object Dictation {
 
     private suspend fun process(r: Recorder, settings: AppSettings) {
         val samples = r.stop()
+        level.value = 0f
         MicForegroundService.stop(app)
         if (Recorder.durationSeconds(samples) < 0.3f) {
             fail("Recording too short")
@@ -164,8 +171,14 @@ object Dictation {
 
         lastTranscript.value = text
         val delivery = deliver(text)
+        TranscriptStore.add(text, engineLabel(settings), Recorder.durationSeconds(samples), delivery)
         setState(DictationState.Done(text, delivery))
         scheduleReset(2_000)
+    }
+
+    private fun engineLabel(settings: AppSettings): String = when (settings.engine) {
+        EngineKind.LOCAL -> settings.localModel
+        EngineKind.REMOTE -> "${settings.sttProvider.label} ${settings.sttModelOrDefault()}"
     }
 
     private fun engineFor(settings: AppSettings): TranscriptionEngine = when (settings.engine) {

@@ -1,10 +1,9 @@
 package com.benschroth.daylightmic.overlay
 
 import android.accessibilityservice.AccessibilityService
-import android.animation.ObjectAnimator
-import android.animation.ValueAnimator
 import android.graphics.Color
 import android.graphics.PixelFormat
+import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Handler
 import android.os.Looper
@@ -15,57 +14,79 @@ import android.view.WindowManager
 import android.widget.LinearLayout
 import android.widget.TextView
 import com.benschroth.daylightmic.core.Delivery
+import com.benschroth.daylightmic.core.Dictation
 import com.benschroth.daylightmic.core.DictationState
 
 /**
- * The small speech bubble. Drawn as an accessibility overlay, so it needs no extra permission
- * and never takes focus away from the text field the user is dictating into.
- * Grayscale only: the Daylight display has no colour.
+ * The floating dictation panel: a waveform on top, a status row underneath.
+ * Ink on paper inverted, so it reads as a distinct object on the Daylight display.
+ * Drawn as an accessibility overlay: no extra permission, and it never takes focus from the
+ * field the user is dictating into.
  */
-class Bubble(private val service: AccessibilityService, private val onTap: () -> Unit) {
+class Bubble(private val service: AccessibilityService, private val onStop: () -> Unit, private val onCancel: () -> Unit) {
     private val wm = service.getSystemService(WindowManager::class.java)
     private val handler = Handler(Looper.getMainLooper())
+    private val model = WaveformModel()
 
     private var root: LinearLayout? = null
-    private lateinit var dot: View
-    private lateinit var label: TextView
-    private var pulse: ObjectAnimator? = null
+    private lateinit var wave: WaveformView
+    private lateinit var status: TextView
+    private lateinit var stopButton: TextView
+    private lateinit var cancelButton: TextView
+
+    private var mode = WaveformModel.Mode.IDLE
     private val hideRunnable = Runnable { hide() }
+    private val frame = object : Runnable {
+        override fun run() {
+            model.tick(Dictation.level.value, mode)
+            if (::wave.isInitialized) wave.invalidate()
+            if (root != null) handler.postDelayed(this, WaveformModel.FRAME_MS)
+        }
+    }
 
     fun render(state: DictationState) {
         handler.removeCallbacks(hideRunnable)
         when (state) {
             DictationState.Idle -> hide()
-            is DictationState.Listening -> show("Listening. Tap to cancel", pulsing = true)
-            DictationState.Transcribing -> show("Transcribing", pulsing = false)
-            DictationState.Cleaning -> show("Cleaning up", pulsing = false)
+            is DictationState.Listening -> show("Listening", WaveformModel.Mode.LISTENING, stop = true, cancel = true)
+            DictationState.Transcribing -> show("Transcribing", WaveformModel.Mode.PROCESSING, stop = false, cancel = true)
+            DictationState.Cleaning -> show("Cleaning up", WaveformModel.Mode.PROCESSING, stop = false, cancel = true)
             is DictationState.Done -> {
                 val text = when (state.delivery) {
                     Delivery.INSERTED -> "Inserted"
                     Delivery.PASTED -> "Pasted"
                     Delivery.CLIPBOARD -> "Copied to clipboard"
                 }
-                show(text, pulsing = false)
-                handler.postDelayed(hideRunnable, 1_500)
+                show(text, WaveformModel.Mode.IDLE, stop = false, cancel = false)
+                handler.postDelayed(hideRunnable, 1_400)
             }
             is DictationState.Failed -> {
-                show(state.message, pulsing = false)
+                show(state.message, WaveformModel.Mode.IDLE, stop = false, cancel = false)
                 handler.postDelayed(hideRunnable, 4_000)
             }
         }
     }
 
-    private fun show(text: String, pulsing: Boolean) {
+    private fun show(text: String, newMode: WaveformModel.Mode, stop: Boolean, cancel: Boolean) {
+        val wasHidden = root == null
         val view = root ?: build().also { attach(it) }
-        label.text = text
-        if (pulsing) startPulse() else stopPulse()
+        if (wasHidden) {
+            model.reset()
+            handler.removeCallbacks(frame)
+            handler.post(frame)
+        }
+        mode = newMode
+        status.text = text
+        stopButton.visibility = if (stop) View.VISIBLE else View.GONE
+        cancelButton.visibility = if (cancel) View.VISIBLE else View.GONE
         view.contentDescription = text
     }
 
     private fun hide() {
-        stopPulse()
+        handler.removeCallbacks(frame)
         root?.let { runCatching { wm.removeView(it) } }
         root = null
+        mode = WaveformModel.Mode.IDLE
     }
 
     fun destroy() {
@@ -74,40 +95,60 @@ class Bubble(private val service: AccessibilityService, private val onTap: () ->
     }
 
     private fun build(): LinearLayout {
-        val paper = Color.parseColor("#F3EEE4")
-        val ink = Color.parseColor("#111111")
+        wave = WaveformView(service, model).apply { barColor = PAPER }
+        status = label(PAPER, 15f)
+        stopButton = chip("Stop").apply { setOnClickListener { onStop() } }
+        cancelButton = chip("Cancel").apply { setOnClickListener { onCancel() } }
 
-        dot = View(service).apply {
-            background = GradientDrawable().apply {
-                shape = GradientDrawable.OVAL
-                setColor(ink)
-            }
-        }
-        label = TextView(service).apply {
-            setTextColor(ink)
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
-            maxLines = 2
-            maxWidth = dp(320)
-        }
-        return LinearLayout(service).apply {
+        val bottomRow = LinearLayout(service).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            setPadding(dp(16), dp(12), dp(18), dp(12))
+            setPadding(dp(18), dp(10), dp(12), dp(12))
+            addView(status, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+            addView(stopButton, chipParams())
+            addView(cancelButton, chipParams())
+        }
+
+        return LinearLayout(service).apply {
+            orientation = LinearLayout.VERTICAL
             background = GradientDrawable().apply {
                 shape = GradientDrawable.RECTANGLE
-                cornerRadius = dp(24).toFloat()
-                setColor(paper)
-                setStroke(dp(2), ink)
+                cornerRadius = dp(22).toFloat()
+                setColor(INK)
             }
-            addView(dot, LinearLayout.LayoutParams(dp(12), dp(12)).apply { marginEnd = dp(12) })
-            addView(label, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT))
-            setOnClickListener { onTap() }
+            addView(wave, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(64)).apply {
+                setMargins(dp(20), dp(18), dp(20), 0)
+            })
+            addView(bottomRow, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))
         }
     }
 
+    private fun label(color: Int, sizeSp: Float): TextView = TextView(service).apply {
+        setTextColor(color)
+        setTextSize(TypedValue.COMPLEX_UNIT_SP, sizeSp)
+        typeface = Typeface.SANS_SERIF
+        maxLines = 2
+    }
+
+    private fun chip(text: String): TextView = label(PAPER, 14f).apply {
+        this.text = text
+        typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
+        setPadding(dp(14), dp(7), dp(14), dp(7))
+        background = GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            cornerRadius = dp(10).toFloat()
+            setColor(Color.TRANSPARENT)
+            setStroke(dp(1), ASH)
+        }
+    }
+
+    private fun chipParams() = LinearLayout.LayoutParams(
+        LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT
+    ).apply { marginStart = dp(8) }
+
     private fun attach(view: LinearLayout) {
         val params = WindowManager.LayoutParams(
-            WindowManager.LayoutParams.WRAP_CONTENT,
+            dp(380),
             WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
@@ -116,28 +157,18 @@ class Bubble(private val service: AccessibilityService, private val onTap: () ->
             PixelFormat.TRANSLUCENT,
         ).apply {
             gravity = Gravity.TOP or Gravity.CENTER_HORIZONTAL
-            y = dp(48)
+            y = dp(40)
         }
         wm.addView(view, params)
         root = view
     }
 
-    private fun startPulse() {
-        if (pulse != null) return
-        pulse = ObjectAnimator.ofFloat(dot, View.ALPHA, 1f, 0.25f).apply {
-            duration = 700
-            repeatCount = ValueAnimator.INFINITE
-            repeatMode = ValueAnimator.REVERSE
-            start()
-        }
-    }
-
-    private fun stopPulse() {
-        pulse?.cancel()
-        pulse = null
-        if (::dot.isInitialized) dot.alpha = 1f
-    }
-
     private fun dp(value: Int): Int =
         TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value.toFloat(), service.resources.displayMetrics).toInt()
+
+    companion object {
+        private val INK = Color.parseColor("#141414")
+        private val PAPER = Color.parseColor("#F3EEE4")
+        private val ASH = Color.parseColor("#6E6E6E")
+    }
 }

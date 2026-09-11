@@ -57,7 +57,7 @@ class DictationAccessibilityService : AccessibilityService() {
                 AccessibilityServiceInfo.FLAG_INPUT_METHOD_EDITOR or
                 AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS
         }
-        bubble = Bubble(this) { Dictation.cancel() }
+        bubble = Bubble(this, onStop = { Dictation.toggle() }, onCancel = { Dictation.cancel() })
         scope.launch {
             Dictation.state.collect { bubble?.render(it) }
         }

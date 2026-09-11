@@ -9,12 +9,18 @@ import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlin.math.min
 import kotlin.math.sqrt
 
 const val SAMPLE_RATE = 16_000
 
 /** Captures 16 kHz mono PCM16 from the microphone until [stop] is called or [maxSeconds] elapse. */
-class Recorder(private val maxSeconds: Int, private val onLimitReached: () -> Unit) {
+class Recorder(
+    private val maxSeconds: Int,
+    private val level: MutableStateFlow<Float>? = null,
+    private val onLimitReached: () -> Unit,
+) {
     private val stopFlag = AtomicBoolean(false)
     private val pcm = ByteArrayOutputStream()
     private var thread: Thread? = null
@@ -39,7 +45,7 @@ class Recorder(private val maxSeconds: Int, private val onLimitReached: () -> Un
 
         val maxBytes = maxSeconds.toLong() * SAMPLE_RATE * 2
         thread = Thread({
-            val buf = ShortArray(2048)
+            val buf = ShortArray(1024) // 64 ms at 16 kHz, so the meter updates ~15 times a second
             try {
                 record.startRecording()
                 check(record.recordingState == AudioRecord.RECORDSTATE_RECORDING) { "Microphone did not start" }
@@ -50,6 +56,7 @@ class Recorder(private val maxSeconds: Int, private val onLimitReached: () -> Un
                         val bb = ByteBuffer.allocate(n * 2).order(ByteOrder.LITTLE_ENDIAN)
                         bb.asShortBuffer().put(buf, 0, n)
                         synchronized(pcm) { pcm.write(bb.array()) }
+                        level?.value = meter(buf, n)
                         if (pcm.size() >= maxBytes) {
                             stopFlag.set(true)
                             onLimitReached()
@@ -78,6 +85,15 @@ class Recorder(private val maxSeconds: Int, private val onLimitReached: () -> Un
 
     companion object {
         private const val TAG = "Recorder"
+
+        /** Speech level in 0..1 for a meter. RMS with gain, so quiet voices still move the bars. */
+        fun meter(buf: ShortArray, n: Int): Float {
+            if (n <= 0) return 0f
+            var acc = 0.0
+            for (i in 0 until n) { val f = buf[i] / 32768.0; acc += f * f }
+            val rms = sqrt(acc / n).toFloat()
+            return min(1f, rms * 6f)
+        }
 
         fun durationSeconds(samples: ShortArray): Float = samples.size / SAMPLE_RATE.toFloat()
 

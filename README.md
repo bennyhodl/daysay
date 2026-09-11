@@ -38,6 +38,14 @@ Install with `adb install`. An APK installed by tapping it in a file manager is 
 sideloaded, and Android 13 then greys out the accessibility switch until you open
 App info, tap the menu in the top right, and choose Allow restricted settings.
 
+## Screens
+
+- **Home**: the setup steps until they are done, then only the live waveform slab. Tap the slab to try a
+  dictation, or press the orange button from any app. The last transcript sits below it.
+- **History**: every transcript, newest first, with copy and delete.
+- **Settings**: engine and models, the optional cleanup pass, speech options, and an Advanced section for
+  the trigger button and permissions.
+
 ## First run on the DC-1
 
 1. Open Daylight Mic. Grant the microphone permission.

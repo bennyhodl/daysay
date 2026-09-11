@@ -15,7 +15,9 @@
 - **Delivery**: how the text reaches the user. `INSERTED` through the input connection or
   set-text, `PASTED` through the clipboard paste action, `CLIPBOARD` when no field has focus.
   The clipboard always receives the text.
-- **Bubble**: the small overlay that shows the dictation state. Grayscale only.
+- **Bubble**: the floating panel that shows the waveform and the dictation state. Ink on paper inverted.
+- **Slab**: the ink block on the home screen. It is the live waveform and the test button in one.
+- **History**: the list of past transcripts.
 - **Provider**: a remote API vendor. Each has a base URL, a default transcription model, and a
   default chat model. One API key per provider.
 - **Local model**: a ggml whisper model file on the device, identified by its catalog id such as
@@ -35,7 +37,10 @@
 | `CleanupClient` | `cleanup/CleanupClient.kt` | Chat completion for the cleanup pass. |
 | `ModelManager` | `model/ModelManager.kt` | Model catalog, download, delete. |
 | `SettingsStore` | `settings/Settings.kt` | All user settings as one `AppSettings` value. |
-| `MainActivity` | `ui/MainActivity.kt` | Permissions and the settings screen. |
+| `MainActivity` | `ui/MainActivity.kt` | Permissions, hosts `AppRoot`. |
+| `AppRoot` | `ui/AppRoot.kt` | Three screens: Home, History, Settings. Home hides setup once complete. |
+| `Waveform`, `WaveformModel`, `WaveformView` | `ui/Waveform.kt`, `overlay/` | One bar model shared by the home slab (Compose) and the floating panel (View). |
+| `TranscriptStore` | `model/TranscriptStore.kt` | History of transcripts on disk, newest first. |
 | `ToggleActivity`, `DictationTileService` | `trigger/` | Alternative triggers. |
 
 ## Rules
@@ -44,7 +49,9 @@
 - A consumed key DOWN must be followed by a consumed key UP.
 - The whisper context is used from one thread only.
 - The bubble never takes focus. It uses `TYPE_ACCESSIBILITY_OVERLAY` with `FLAG_NOT_FOCUSABLE`.
-- No colour carries meaning in the UI. Paper `#F3EEE4`, ink `#111111`.
+- No colour carries meaning in the UI. Paper `#F3EEE4`, ink `#141414`. Serif for the one big line per
+  screen, sans for the rest, monospace for transcripts.
+- The floating panel keeps one height in every state. Only Cancel is live while processing.
 - Google speech services are not used.
 
 ## Target
