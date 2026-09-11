@@ -4,6 +4,7 @@ import android.content.Context
 import dev.bennyb.daysay.net.ApiException
 import dev.bennyb.daysay.net.Http
 import dev.bennyb.daysay.settings.Provider
+import dev.bennyb.daysay.settings.SettingsStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -107,7 +108,9 @@ object ModelManager {
         if (_download.value is DownloadState.Failed) _download.value = DownloadState.Idle
     }
 
+    /** Removes the file. The model in use is kept: the UI blocks it, and this guard backs the UI. */
     fun delete(context: Context, model: LocalModel) {
+        if (SettingsStore.current.model == model.id) return
         file(context, model).delete()
         revision.value++
     }

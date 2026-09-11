@@ -76,6 +76,19 @@ fun SettingsScreen(
     val download by ModelManager.download.collectAsState()
     val modelRevision by ModelManager.revision.collectAsState()
     var keyRequest by remember { mutableStateOf<KeyRequest?>(null) }
+    var removeRequest by remember { mutableStateOf<LocalModel?>(null) }
+    val context = LocalContext.current
+
+    removeRequest?.let { model ->
+        RemoveModelDialog(
+            model = model,
+            onConfirm = {
+                ModelManager.delete(context, model)
+                removeRequest = null
+            },
+            onDismiss = { removeRequest = null },
+        )
+    }
 
     keyRequest?.let { request ->
         KeyDialog(
@@ -99,10 +112,19 @@ fun SettingsScreen(
         SectionHeader("Model")
         Text("Where speech becomes text. Tap one to use it.", style = MaterialTheme.typography.bodyMedium, color = Paper.graphite)
         Spacer(Modifier.height(12.dp))
-        @Suppress("UNUSED_VARIABLE") val observedRevision = modelRevision
+        // Read the revision here so the downloaded flags are recomputed after a download or a delete.
+        val downloaded = remember(modelRevision) {
+            ModelCatalog.local.associateWith { ModelManager.isDownloaded(context, it) }
+        }
         ModelCatalog.local.forEachIndexed { index, model ->
             if (index > 0) HorizontalDivider(color = Paper.mist)
-            LocalModelRow(model, settings, download)
+            LocalModelRow(
+                model = model,
+                settings = settings,
+                download = download,
+                downloaded = downloaded[model] == true,
+                onRemove = { removeRequest = model },
+            )
         }
         ModelCatalog.remote.forEach { model ->
             HorizontalDivider(color = Paper.mist)
@@ -135,9 +157,14 @@ fun SettingsScreen(
 }
 
 @Composable
-private fun LocalModelRow(model: LocalModel, settings: AppSettings, download: DownloadState) {
+private fun LocalModelRow(
+    model: LocalModel,
+    settings: AppSettings,
+    download: DownloadState,
+    downloaded: Boolean,
+    onRemove: () -> Unit,
+) {
     val context = LocalContext.current
-    val downloaded = ModelManager.isDownloaded(context, model)
     val running = (download as? DownloadState.Running)?.takeIf { it.modelId == model.id }
     val failed = (download as? DownloadState.Failed)?.takeIf { it.modelId == model.id }
     val selected = settings.model == model.id
@@ -162,8 +189,9 @@ private fun LocalModelRow(model: LocalModel, settings: AppSettings, download: Do
                 running != null -> IconButton(onClick = { ModelManager.cancelDownload() }) {
                     Icon(Icons.Outlined.Close, contentDescription = "Cancel download")
                 }
-                downloaded -> IconButton(onClick = { ModelManager.delete(context, model) }) {
-                    Icon(Icons.Outlined.Delete, contentDescription = "Remove from device")
+                // The model in use stays on the device. Pick another model first.
+                downloaded -> IconButton(onClick = onRemove, enabled = !selected) {
+                    Icon(Icons.Outlined.Delete, contentDescription = if (selected) "In use" else "Remove from device")
                 }
                 else -> IconButton(
                     onClick = { ModelManager.startDownload(context, model) },
@@ -241,6 +269,24 @@ private fun CleanupRow(settings: AppSettings, onToggle: (Boolean) -> Unit, onCha
         Spacer(Modifier.width(16.dp))
         Switch(checked = settings.cleanupEnabled, onCheckedChange = onToggle)
     }
+}
+
+/** Asks before a local model is removed from the device. */
+@Composable
+private fun RemoveModelDialog(model: LocalModel, onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Remove ${model.name} from the device?") },
+        text = {
+            Text(
+                "This frees ${model.sizeMb} MB. You can download it again at any time.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Paper.graphite,
+            )
+        },
+        confirmButton = { TextButton(onClick = onConfirm) { Text("Remove") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+    )
 }
 
 /**

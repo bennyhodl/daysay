@@ -58,6 +58,8 @@
 - The whisper context is used from one thread only.
 - The bubble never takes focus. It uses `TYPE_ACCESSIBILITY_OVERLAY` with `FLAG_NOT_FOCUSABLE`.
 - Model names are the plain names everywhere: Small, Medium, Large, Groq. Never the catalog id.
+- The model in use cannot be removed from the device. Pick another model first. Removal asks for
+  confirmation.
 - One API key input per provider. The key dialog is the only place a key is typed.
 - No colour carries meaning in the UI. Paper `#F3EEE4`, ink `#141414`. Serif for the one big line per
   screen, sans for the rest, monospace for transcripts.
