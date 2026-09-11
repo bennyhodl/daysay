@@ -42,9 +42,9 @@ App info, tap the menu in the top right, and choose Allow restricted settings.
 
 1. Open Daylight Mic. Grant the microphone permission.
 2. Tap Open settings next to Accessibility service and enable Daylight Mic dictation.
-3. Back in the app, tap Learn button and press the orange button. The app stores its key code
-   and scan code. The Last key seen line shows every key the service receives, which is useful
-   if the button does not register.
+3. The orange side button (F11) is the trigger by default. Tap Top button to use the top one
+   (F12) instead, or Learn button to record any other key. The Last key seen line shows every
+   key the service receives.
 4. Pick an engine. For on device, download a model. For remote, pick a provider and paste a key.
 5. Focus any text field, press the orange button, speak, press it again.
 
@@ -52,12 +52,17 @@ If the orange button never shows up under Last key seen, it does not reach the A
 layer. Then use the quick settings tile, or map the button with KeyMapper to the
 `Toggle dictation` activity (`com.benschroth.daylightmic.TOGGLE`).
 
-## Finding the key code over ADB
+## The orange buttons
 
-```bash
-adb shell getevent -lq            # press the button, note the EV_KEY line
-adb shell dumpsys input | grep -iA30 KeyboardInputMapper
-```
+Measured with `adb shell getevent -lq` on a DC-1:
+
+| Button | Linux key | Scan code | Android key code |
+|---|---|---|---|
+| Side | `KEY_F11` | 87 | `KEYCODE_F11` (141) |
+| Top | `KEY_F12` | 88 | `KEYCODE_F12` (142) |
+
+Both are plain keys that the system does not reserve, so the accessibility service can see and
+consume them.
 
 ## License
 

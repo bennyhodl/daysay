@@ -61,11 +61,17 @@ data class TriggerKey(val keyCode: Int, val scanCode: Int) {
 
     companion object {
         val NONE = TriggerKey(-1, -1)
+
+        /** The DC-1 orange side button: Linux KEY_F11 (scan 87), Android KEYCODE_F11 (141). */
+        val DC1_SIDE = TriggerKey(keyCode = 141, scanCode = 87)
+
+        /** The DC-1 orange top button: Linux KEY_F12 (scan 88), Android KEYCODE_F12 (142). */
+        val DC1_TOP = TriggerKey(keyCode = 142, scanCode = 88)
     }
 }
 
 data class AppSettings(
-    val trigger: TriggerKey = TriggerKey.NONE,
+    val trigger: TriggerKey = TriggerKey.DC1_SIDE,
     val engine: EngineKind = EngineKind.LOCAL,
     val localModel: String = "base.en-q5_1",
     val sttProvider: Provider = Provider.GROQ,
@@ -101,7 +107,10 @@ object SettingsStore {
     }
 
     private fun load(): AppSettings = AppSettings(
-        trigger = TriggerKey(prefs.getInt("trigger_keycode", -1), prefs.getInt("trigger_scancode", -1)),
+        trigger = TriggerKey(
+            prefs.getInt("trigger_keycode", TriggerKey.DC1_SIDE.keyCode),
+            prefs.getInt("trigger_scancode", TriggerKey.DC1_SIDE.scanCode),
+        ),
         engine = enumOr(prefs.getString("engine", null), EngineKind.LOCAL),
         localModel = prefs.getString("local_model", null) ?: "base.en-q5_1",
         sttProvider = enumOr(prefs.getString("stt_provider", null), Provider.GROQ),

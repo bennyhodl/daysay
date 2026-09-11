@@ -105,9 +105,13 @@ fun SettingsScreen(
             SectionTitle("Trigger button")
             val trigger = settings.trigger
             Text(
-                if (trigger.isSet) "Current: ${android.view.KeyEvent.keyCodeToString(trigger.keyCode)} " +
-                    "(key ${trigger.keyCode}, scan ${trigger.scanCode})"
-                else "Not set",
+                when {
+                    trigger == com.benschroth.daylightmic.settings.TriggerKey.DC1_SIDE -> "Current: orange side button (F11)"
+                    trigger == com.benschroth.daylightmic.settings.TriggerKey.DC1_TOP -> "Current: orange top button (F12)"
+                    trigger.isSet -> "Current: ${android.view.KeyEvent.keyCodeToString(trigger.keyCode)} " +
+                        "(key ${trigger.keyCode}, scan ${trigger.scanCode})"
+                    else -> "Not set"
+                },
                 style = MaterialTheme.typography.bodyMedium,
             )
             if (learnMode) {
@@ -118,10 +122,11 @@ fun SettingsScreen(
                     Button(onClick = { Dictation.learnMode.value = true }, enabled = accessibilityEnabled) {
                         Text("Learn button")
                     }
-                    if (trigger.isSet) {
-                        OutlinedButton(onClick = { SettingsStore.update { it.copy(trigger = com.benschroth.daylightmic.settings.TriggerKey.NONE) } }) {
-                            Text("Clear")
-                        }
+                    OutlinedButton(onClick = { SettingsStore.update { it.copy(trigger = com.benschroth.daylightmic.settings.TriggerKey.DC1_SIDE) } }) {
+                        Text("Side button")
+                    }
+                    OutlinedButton(onClick = { SettingsStore.update { it.copy(trigger = com.benschroth.daylightmic.settings.TriggerKey.DC1_TOP) } }) {
+                        Text("Top button")
                     }
                 }
             }

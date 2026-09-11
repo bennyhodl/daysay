@@ -2,8 +2,9 @@
 
 ## Ubiquitous language
 
-- **Trigger button**: the hardware key that starts and stops dictation. On the DC-1 this is the
-  orange side button. Stored as a key code plus a scan code (`TriggerKey`).
+- **Trigger button**: the hardware key that starts and stops dictation. Default is the DC-1
+  orange side button, `KEYCODE_F11` with scan code 87. The top button is `KEYCODE_F12`, scan
+  code 88. Stored as a key code plus a scan code (`TriggerKey`).
 - **Learn mode**: the app state in which the next key press becomes the trigger button.
 - **Dictation**: one full cycle: listen, transcribe, optional cleanup, deliver.
 - **Listening**: the microphone is open and audio is captured.
