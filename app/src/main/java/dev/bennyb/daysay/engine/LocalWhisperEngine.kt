@@ -38,18 +38,21 @@ object LocalWhisperEngine : TranscriptionEngine {
 
     private fun ensureLoaded(file: File) {
         if (ptr != 0L && loadedPath == file.absolutePath) return
-        release()
+        releaseLocked()
         Log.i(TAG, "loading ${file.name}; ${WhisperLib.systemInfo()}")
         ptr = WhisperLib.initContext(file.absolutePath)
         if (ptr == 0L) throw IllegalStateException("Could not load model ${file.name}")
         loadedPath = file.absolutePath
     }
 
-    fun release() {
+    private fun releaseLocked() {
         if (ptr != 0L) {
             WhisperLib.freeContext(ptr)
             ptr = 0L
             loadedPath = null
         }
     }
+
+    /** Frees the context from another engine's caller. Must hop to [dispatcher]: whisper.cpp contexts are single-thread. */
+    suspend fun release() = withContext(dispatcher) { releaseLocked() }
 }

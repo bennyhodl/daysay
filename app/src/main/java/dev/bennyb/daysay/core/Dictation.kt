@@ -182,7 +182,7 @@ object Dictation {
 
     private fun engineLabel(settings: AppSettings): String = ModelCatalog.displayName(settings.model)
 
-    private fun engineFor(settings: AppSettings): TranscriptionEngine {
+    private suspend fun engineFor(settings: AppSettings): TranscriptionEngine {
         if (settings.isRemote) {
             return RemoteTranscriptionEngine(
                 provider = settings.provider,
@@ -194,9 +194,11 @@ object Dictation {
             ?: throw IllegalStateException("Unknown model ${settings.model}")
         val file = ModelManager.file(app, model)
         if (!file.exists()) throw IllegalStateException("${model.name} is not downloaded. Open Daysay settings.")
+        // Only one local model is ever in use. Release the other engine's native context so both
+        // are never resident at once (roughly 1.4 GB combined on the DC-1 vs. ~700 MB for one).
         return when (model.engine) {
-            Engine.WHISPER -> LocalWhisperEngine.also { it.modelFile = file }
-            Engine.PARAKEET -> LocalParakeetEngine.also { it.modelFile = file }
+            Engine.WHISPER -> { LocalParakeetEngine.release(); LocalWhisperEngine.also { it.modelFile = file } }
+            Engine.PARAKEET -> { LocalWhisperEngine.release(); LocalParakeetEngine.also { it.modelFile = file } }
         }
     }
 

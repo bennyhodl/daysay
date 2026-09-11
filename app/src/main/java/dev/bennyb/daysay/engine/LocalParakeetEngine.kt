@@ -8,9 +8,10 @@ import java.io.File
 import java.util.concurrent.Executors
 
 /**
- * Runs whisper.cpp's vendored Parakeet (TDT) support on the device. English only. The context
- * stays loaded between requests because loading takes longer than a short transcription. All
- * native calls run on one thread: parakeet.cpp contexts are not thread safe.
+ * Runs whisper.cpp's vendored Parakeet (TDT) support on the device. Detects language on its own;
+ * `settings.language` is ignored. The context stays loaded between requests because loading takes
+ * longer than a short transcription. All native calls run on one thread: parakeet.cpp contexts
+ * are not thread safe.
  */
 object LocalParakeetEngine : TranscriptionEngine {
     private const val TAG = "LocalParakeet"
@@ -28,7 +29,7 @@ object LocalParakeetEngine : TranscriptionEngine {
         val file = modelFile ?: throw IllegalStateException("No local model selected")
         if (!file.exists()) throw IllegalStateException("Model not downloaded: ${file.name}")
         ensureLoaded(file)
-        // Same conv-subsampling floor as whisper.cpp; pad short clips with silence.
+        // whisper.cpp needs one second; keep the same floor here so both engines see the same audio.
         val floats = Recorder.toFloats(samples).let { if (it.size < 16_000) it.copyOf(16_000) else it }
         val started = System.currentTimeMillis()
         val text = ParakeetLib.transcribe(ptr, threads, floats)
@@ -38,18 +39,21 @@ object LocalParakeetEngine : TranscriptionEngine {
 
     private fun ensureLoaded(file: File) {
         if (ptr != 0L && loadedPath == file.absolutePath) return
-        release()
+        releaseLocked()
         Log.i(TAG, "loading ${file.name}; ${ParakeetLib.systemInfo()}")
         ptr = ParakeetLib.initContext(file.absolutePath)
         if (ptr == 0L) throw IllegalStateException("Could not load model ${file.name}")
         loadedPath = file.absolutePath
     }
 
-    fun release() {
+    private fun releaseLocked() {
         if (ptr != 0L) {
             ParakeetLib.freeContext(ptr)
             ptr = 0L
             loadedPath = null
         }
     }
+
+    /** Frees the context from another engine's caller. Must hop to [dispatcher]: parakeet.cpp contexts are single-thread. */
+    suspend fun release() = withContext(dispatcher) { releaseLocked() }
 }

@@ -1,5 +1,6 @@
 # JNI: the native library looks these up by name.
 -keep class dev.bennyb.daysay.engine.WhisperLib { *; }
+-keep class dev.bennyb.daysay.engine.ParakeetLib { *; }
 -keepclasseswithmembernames class * { native <methods>; }
 
 # Components referenced from the manifest are kept by AGP. Keep the enum names that are

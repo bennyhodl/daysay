@@ -69,7 +69,7 @@ object ModelCatalog {
         LocalModel("base-q5_1", "Medium multilingual", "Any language", 60, "recommended"),
         LocalModel("small-q5_1", "Large multilingual", "Any language", 190, "best quality, slow"),
         LocalModel(
-            "parakeet-tdt-0.6b-v3-q8_0", "Parakeet", "English", 630, "fastest, most accurate",
+            "parakeet-tdt-0.6b-v3-q8_0", "Parakeet", "European languages", 640, "fastest, most accurate",
             engine = Engine.PARAKEET,
             fileNameOverride = "ggml-parakeet-tdt-0.6b-v3-q8_0.bin",
             urlOverride = "https://huggingface.co/ggml-org/parakeet-GGUF/resolve/main/ggml-parakeet-tdt-0.6b-v3-q8_0.bin",

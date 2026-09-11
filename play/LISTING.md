@@ -18,7 +18,7 @@ typed into whatever text field has focus. It is also copied to the clipboard. No
 keyboard takes over, and no Google speech service is involved.
 
 Pick a model from one list:
-• On device: Small, Medium, or Large. Whisper runs on the tablet and nothing leaves it. Models download once.
+• On device: Small, Medium, Large, or Parakeet. Whisper or Parakeet runs on the tablet and nothing leaves it. Models download once.
 • Remote, with your own key: Groq, OpenAI, or OpenRouter. Fast and accurate, needs Wi-Fi.
 
 Optional cleanup pass: a chat model fixes punctuation and removes filler words before the text is
