@@ -4,22 +4,22 @@ Copy these into the Play Console. Keep them in sync with the app.
 
 ## Store listing
 
-**App name**: Daylight Mic
+**App name**: Daysay
 
 **Short description** (80 characters max):
 Press a button, speak, press again. Your words land in the text field.
 
 **Full description**:
-Daylight Mic is push-button dictation for the Daylight DC-1 tablet, and any Android device with a
+Daysay is push-button dictation for the Daylight DC-1 tablet, and any Android device with a
 spare hardware key.
 
 Press the orange side button once to start listening. Speak. Press it again, and the transcript is
 typed into whatever text field has focus. It is also copied to the clipboard. No full-screen
 keyboard takes over, and no Google speech service is involved.
 
-Choose how speech becomes text:
-• On device. Whisper runs on the tablet and nothing leaves it. Models download once.
-• Remote, with your own key. Groq, OpenAI, or OpenRouter. Fast and accurate, needs Wi-Fi.
+Pick a model from one list:
+• On device: Small, Medium, or Large. Whisper runs on the tablet and nothing leaves it. Models download once.
+• Remote, with your own key: Groq, OpenAI, or OpenRouter. Fast and accurate, needs Wi-Fi.
 
 Optional cleanup pass: a chat model fixes punctuation and removes filler words before the text is
 inserted. Off by default.
@@ -38,7 +38,7 @@ keystrokes. Full details are shown in the app before you turn the service on.
 
 **Contact email**: ben@bitcoinbay.foundation
 
-**Privacy policy URL**: https://github.com/bennyhodl/daylight-mic/blob/main/play/PRIVACY.md
+**Privacy policy URL**: https://github.com/bennyhodl/daysay/blob/master/play/PRIVACY.md
 
 **Graphics**: `icon-512.png` (app icon), `feature-graphic-1024x500.png` (feature graphic). Take at
 least two screenshots on the DC-1: the Home screen with the ink slab, and the floating panel over a
@@ -53,7 +53,7 @@ Answer "No" to "Is your app an accessibility tool". The service is not for peopl
 disabilities and the manifest sets `isAccessibilityTool="false"`.
 
 **Why the app needs the AccessibilityService API**:
-Daylight Mic is a dictation tool triggered by a hardware button. The accessibility service is used
+Daysay is a dictation tool triggered by a hardware button. The accessibility service is used
 for three narrow purposes: (1) `onKeyEvent` to detect the configured hardware key (by default the
 Daylight DC-1 side button, KEYCODE_F11) that starts and stops a dictation; (2) drawing a small
 status overlay (TYPE_ACCESSIBILITY_OVERLAY) that shows the listening and transcribing state; (3)
@@ -93,7 +93,7 @@ stops as soon as the user presses the button again.
   third-party provider the user configures, optionally).
 - Data types:
   - **Audio: Voice or sound recordings**. Collected: yes (processed ephemerally). Shared: yes, with
-    the AI provider the user selected, only when a remote engine is chosen. Optional: yes. Purpose:
+    the AI provider the user selected, only when a remote model is chosen. Optional: yes. Purpose:
     app functionality. Encrypted in transit: yes. User can request deletion: not applicable, not
     stored by the developer.
   - **Personal info: Other (transcript text)**. Collected: stored on device only. Shared: yes, with

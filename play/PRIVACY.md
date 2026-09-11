@@ -1,8 +1,8 @@
-# Daylight Mic privacy policy
+# Daysay privacy policy
 
 Last updated: 11 September 2026
 
-Daylight Mic is a dictation app for Android. It is made by Ben Schroth. This policy explains what
+Daysay is a dictation app for Android. It is made by Ben Schroth. This policy explains what
 the app does with your data.
 
 ## What the app collects
@@ -15,7 +15,7 @@ disk and it is not kept after the transcript is produced.
 History screen. You can delete any transcript, or all of them, at any time. Transcripts never leave
 the device unless you choose the cleanup pass described below.
 
-**Settings.** Your engine choice, API keys, and preferences are stored on the device in the app's
+**Settings.** Your model choice, API keys, and preferences are stored on the device in the app's
 private storage. API keys are not sent anywhere except to the provider they belong to.
 
 **The focused text field.** To insert a transcript, the app's accessibility service reads the text
@@ -29,16 +29,16 @@ app does not log or transmit key presses.
 
 ## What leaves the device
 
-Nothing leaves the device when you use the on-device engine with the cleanup pass off. This is the
+Nothing leaves the device when you use an on-device model with the cleanup pass off. This is the
 default.
 
-If you choose a remote engine, your recorded audio is sent over an encrypted connection to the
+If you choose a remote model, your recorded audio is sent over an encrypted connection to the
 provider you selected, using the API key you entered: Groq (groq.com), OpenAI (openai.com), or
 OpenRouter (openrouter.ai). The provider returns the transcript. If you turn on the cleanup pass,
 the transcript text is sent to the provider you selected for cleanup. Each provider handles that
 data under its own privacy policy and terms.
 
-Model files for the on-device engine are downloaded from Hugging Face (huggingface.co) when you
+On-device model files are downloaded from Hugging Face (huggingface.co) when you
 request them. That request contains no personal data.
 
 ## What the app does not do
@@ -54,11 +54,11 @@ request them. That request contains no personal data.
 - **Accessibility service**: to see the hardware button, show the dictation panel, and insert text
   into the focused field. This is disclosed inside the app before you turn it on.
 - **Notifications**: to show a persistent notification while a dictation is in progress.
-- **Internet**: only for remote engines, the cleanup pass, and model downloads.
+- **Internet**: only for remote models, the cleanup pass, and model downloads.
 
 ## Your choices
 
-You can switch engines, turn the cleanup pass off, remove API keys, delete transcripts, and turn
+You can switch models, turn the cleanup pass off, remove API keys, delete transcripts, and turn
 off the accessibility service at any time from the app or from Android settings. Uninstalling the
 app removes all data it stored.
 

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.DaylightMic" parent="android:Theme.Material.Light.NoActionBar">
+    <style name="Theme.Daysay" parent="android:Theme.Material.Light.NoActionBar">
         <item name="android:windowBackground">#F3EEE4</item>
         <item name="android:statusBarColor">#F3EEE4</item>
         <item name="android:navigationBarColor">#F3EEE4</item>

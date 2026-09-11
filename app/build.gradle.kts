@@ -13,13 +13,13 @@ val keystoreProperties = Properties().apply {
 val hasUploadKey = keystoreProperties.containsKey("storeFile")
 
 android {
-    namespace = "com.benschroth.daylightmic"
+    namespace = "dev.bennyb.daysay"
     compileSdk = 37
     compileSdkMinor = 2
     ndkVersion = "28.2.13676358"
 
     defaultConfig {
-        applicationId = "com.benschroth.daylightmic"
+        applicationId = "dev.bennyb.daysay"
         minSdk = 33
         targetSdk = 36
         versionCode = 1

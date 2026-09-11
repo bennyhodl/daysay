@@ -8,4 +8,4 @@
     android:description="@string/service_description"
     android:isAccessibilityTool="false"
     android:notificationTimeout="100"
-    android:settingsActivity="com.benschroth.daylightmic.ui.MainActivity" />
+    android:settingsActivity="dev.bennyb.daysay.ui.MainActivity" />

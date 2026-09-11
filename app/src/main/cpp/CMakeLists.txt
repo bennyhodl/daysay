@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(daylightmic C CXX)
+project(daysay C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_C_STANDARD 11)
@@ -30,8 +30,8 @@ add_subdirectory(${WHISPER_DIR} whisper_build EXCLUDE_FROM_ALL)
 
 find_library(LOG_LIB log)
 
-add_library(daylightmic SHARED jni.c)
-target_include_directories(daylightmic PRIVATE
+add_library(daysay SHARED jni.c)
+target_include_directories(daysay PRIVATE
         ${WHISPER_DIR}/include
         ${WHISPER_DIR}/ggml/include)
-target_link_libraries(daylightmic PRIVATE whisper ${LOG_LIB} android)
+target_link_libraries(daysay PRIVATE whisper ${LOG_LIB} android)

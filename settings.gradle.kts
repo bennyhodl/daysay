@@ -12,5 +12,5 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "daylight-mic"
+rootProject.name = "daysay"
 include(":app")

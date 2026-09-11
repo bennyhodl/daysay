@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Daylight Mic</string>
+    <string name="app_name">Daysay</string>
     <string name="toggle_label">Toggle dictation</string>
-    <string name="service_label">Daylight Mic dictation</string>
+    <string name="service_label">Daysay dictation</string>
     <string name="service_description">Watches the hardware button that starts and stops dictation, shows the small speech bubble, and types the transcript into the focused text field. It does not read screen content.</string>
 </resources>

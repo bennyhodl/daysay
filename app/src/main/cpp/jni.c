@@ -4,7 +4,7 @@
 #include <string.h>
 #include "whisper.h"
 
-#define TAG "DaylightMicJNI"
+#define TAG "DaysayJNI"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, TAG, __VA_ARGS__)
 #define LOGW(...) __android_log_print(ANDROID_LOG_WARN, TAG, __VA_ARGS__)
 #define UNUSED(x) (void)(x)
@@ -18,7 +18,7 @@ static void log_callback(enum ggml_log_level level, const char *text, void *user
 }
 
 JNIEXPORT jlong JNICALL
-Java_com_benschroth_daylightmic_engine_WhisperLib_initContext(JNIEnv *env, jclass clazz, jstring model_path) {
+Java_dev_bennyb_daysay_engine_WhisperLib_initContext(JNIEnv *env, jclass clazz, jstring model_path) {
     UNUSED(clazz);
     whisper_log_set(log_callback, NULL);
     const char *path = (*env)->GetStringUTFChars(env, model_path, NULL);
@@ -33,7 +33,7 @@ Java_com_benschroth_daylightmic_engine_WhisperLib_initContext(JNIEnv *env, jclas
 }
 
 JNIEXPORT void JNICALL
-Java_com_benschroth_daylightmic_engine_WhisperLib_freeContext(JNIEnv *env, jclass clazz, jlong ptr) {
+Java_dev_bennyb_daysay_engine_WhisperLib_freeContext(JNIEnv *env, jclass clazz, jlong ptr) {
     UNUSED(env);
     UNUSED(clazz);
     if (ptr != 0) {
@@ -42,7 +42,7 @@ Java_com_benschroth_daylightmic_engine_WhisperLib_freeContext(JNIEnv *env, jclas
 }
 
 JNIEXPORT jstring JNICALL
-Java_com_benschroth_daylightmic_engine_WhisperLib_transcribe(
+Java_dev_bennyb_daysay_engine_WhisperLib_transcribe(
         JNIEnv *env, jclass clazz, jlong ptr, jint n_threads, jstring language,
         jstring initial_prompt, jfloatArray audio) {
     UNUSED(clazz);
@@ -103,7 +103,7 @@ Java_com_benschroth_daylightmic_engine_WhisperLib_transcribe(
 }
 
 JNIEXPORT jstring JNICALL
-Java_com_benschroth_daylightmic_engine_WhisperLib_systemInfo(JNIEnv *env, jclass clazz) {
+Java_dev_bennyb_daysay_engine_WhisperLib_systemInfo(JNIEnv *env, jclass clazz) {
     UNUSED(clazz);
     return (*env)->NewStringUTF(env, whisper_print_system_info());
 }
