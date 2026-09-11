@@ -1,0 +1,1 @@
+-keep class com.benschroth.daylightmic.engine.WhisperLib { *; }
