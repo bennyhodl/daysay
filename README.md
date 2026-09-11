@@ -1,94 +1,63 @@
-# Daysay
+<p align="center">
+  <img src="artwork/daysay-mark.svg" width="180" alt="Daysay logo">
+</p>
 
-Push-button dictation for the Daylight DC-1. Press the orange side button once to listen,
-press it again to transcribe. The text goes into the focused text field and to the clipboard.
-No full-screen keyboard, no Google speech services.
+<h1 align="center">Daysay</h1>
 
-## How it works
+<p align="center">
+  Calm, system-wide dictation for the Daylight DC-1.
+</p>
 
-One accessibility service does three jobs:
+Daysay turns speech into text without asking you to stop what you are doing. Dictation stays
+active while you scroll, read, or move between apps. When the transcript is ready, Daysay puts it
+in the focused text field and copies it to the clipboard.
 
-1. It sees every hardware key press before the rest of the system and toggles dictation on the
-   trigger key.
-2. It draws the small speech bubble as an accessibility overlay. No overlay permission is needed.
-3. It acts as a minimal input method, so the transcript is committed straight into the focused
-   field through a real input connection. Fallbacks: set-text on the focused node, then paste.
+The default models run on the DC-1 through whisper.cpp. Your recordings and transcripts can stay
+on the tablet, with no Google speech service and no account. Remote transcription and an optional
+cleanup pass are available if you choose to configure them.
 
-Audio is captured at 16 kHz mono PCM and sent to the model you picked from one list:
+## Why I built it
 
-- **On device**: Small, Medium, Large, Medium multilingual, Large multilingual. These are
-  whisper.cpp models, built from the vendored source in `app/src/main/cpp/whisper.cpp`. They
-  download from Hugging Face when you pick them.
-- **Remote**, marked with a cloud icon: Groq, OpenAI, or OpenRouter, with your own key. Groq and
-  OpenAI use the `/audio/transcriptions` endpoint. OpenRouter sends the audio to a chat model that
-  accepts audio.
+I could not find a dictation app made for the Daylight DC-1. Voice input in Gboard and similar apps
+is tied to the keyboard experience. I wanted to keep reading, scroll through a document, and move
+between apps while recording continued.
 
-An optional cleanup pass sends the transcript to a chat model for punctuation and filler removal.
-It is off by default and always remote. One API key per provider serves both transcription and
-cleanup.
+Daysay grew from that need. It treats dictation as a quiet system tool instead of a screen that
+demands your attention.
 
-## Build
+## What it does
 
-Requires JDK 17 or later and the Android SDK with `cmdline-tools`.
+- Runs English and multilingual whisper.cpp models on the device.
+- Continues listening while you use other apps.
+- Shows a small floating panel without taking focus from your work.
+- Delivers each transcript to the focused field and the clipboard.
+- Keeps a local transcript history.
+- Supports optional Groq, OpenAI, and OpenRouter transcription.
+- Offers an optional cleanup pass for punctuation and filler removal.
 
-```bash
-./build.sh          # builds the debug APK
-./build.sh install  # also installs it on the connected device
-./build.sh release  # builds the signed bundle for Google Play
-```
+## What it looks like
 
-The script finds the JDK through `JAVA_HOME`, then Homebrew OpenJDK on macOS, then
-`~/.local/jdk` on Linux. It finds the SDK through `ANDROID_HOME`, then `~/Library/Android/sdk`
-on macOS, then `~/Android/Sdk` on Linux. It installs the platform, NDK, and CMake versions from
-`app/build.gradle.kts` with `sdkmanager` when they are missing.
+<p align="center">
+  <img src="docs/images/home-screen.png" width="46%" alt="Daysay home screen while listening">
+  <img src="docs/images/dictation-overlay.png" width="46%" alt="Daysay dictation panel over a document">
+</p>
 
-Install with `adb install`. An APK installed by tapping it in a file manager is marked as
-sideloaded, and Android 13 then greys out the accessibility switch until you open
-App info, tap the menu in the top right, and choose Allow restricted settings.
+## Install
 
-## Screens
+See [Install Daysay](docs/INSTALL.md) for device requirements, permissions, local model sizes,
+sideloading, and source builds.
 
-- **Home**: the setup steps until they are done, then only the live waveform slab, centred on the
-  page. The slab names the model in use. Tap it to try a dictation, or press the orange button from
-  any app. While Daysay is on screen the floating panel stays hidden; the slab shows the state.
-- **History**: every transcript, newest first, with copy and delete.
-- **Settings**: the model list, the cleanup pass, and an Advanced section for cleanup
-  instructions, remote model ids, speech options, the trigger button, and permissions.
+## Privacy
 
-## First run on the DC-1
+With a local model, audio stays on the tablet and Daysay performs transcription on the device.
+Daysay does not use Google speech services. If you select a remote provider or enable the cleanup
+pass, the app sends the required audio or text to the provider you selected.
 
-1. Open Daysay. Grant the microphone permission.
-2. Tap Open settings next to Accessibility service and enable Daysay dictation.
-3. The orange side button (F11) is the trigger by default. Tap Top button to use the top one
-   (F12) instead, or Learn button to record any other key. The Last key seen line shows every
-   key the service receives.
-4. Pick a model. An on-device model downloads when you tap it. A remote model asks for the
-   provider's API key.
-5. Focus any text field, press the orange button, speak, press it again.
-
-If the orange button never shows up under Last key seen, it does not reach the Android input
-layer. Then use the quick settings tile, or map the button with KeyMapper to the
-`Toggle dictation` activity (`dev.bennyb.daysay.TOGGLE`).
-
-## The orange buttons
-
-Measured with `adb shell getevent -lq` on a DC-1:
-
-| Button | Linux key | Scan code | Android key code |
-|---|---|---|---|
-| Side | `KEY_F11` | 87 | `KEYCODE_F11` (141) |
-| Top | `KEY_F12` | 88 | `KEYCODE_F12` (142) |
-
-Both are plain keys that the system does not reserve, so the accessibility service can see and
-consume them.
-
-## Google Play
-
-The `play/` folder has the privacy policy, the store listing text with answers for the
-accessibility and foreground service declarations, the listing art, and a release checklist in
-`play/RELEASE.md`. Release builds are signed with an upload key that stays outside the repo.
+See [the full privacy policy](play/PRIVACY.md) for details.
 
 ## License
 
-MIT. The vendored whisper.cpp and ggml sources in `app/src/main/cpp/whisper.cpp` are MIT
-licensed by their authors; see the LICENSE file in that directory.
+Daysay is available under the MIT License. The vendored whisper.cpp and ggml sources are also MIT
+licensed by their authors. See the license in `app/src/main/cpp/whisper.cpp`.
+
+Daysay is an independent project and is not affiliated with Daylight Computer Company.
