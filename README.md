@@ -26,13 +26,17 @@ It is off by default and always remote.
 
 ## Build
 
-Requires JDK 17 or 21, the Android SDK with platform 36, build-tools 36.0.0, NDK 28.2.13676358,
-and CMake 3.31.6. Set `sdk.dir` in `local.properties`.
+Requires JDK 17 or later and the Android SDK with `cmdline-tools`.
 
 ```bash
-./gradlew assembleDebug
-adb install -r app/build/outputs/apk/debug/app-debug.apk
+./build.sh          # builds the debug APK
+./build.sh install  # also installs it on the connected device
 ```
+
+The script finds the JDK through `JAVA_HOME`, then Homebrew OpenJDK on macOS, then
+`~/.local/jdk` on Linux. It finds the SDK through `ANDROID_HOME`, then `~/Library/Android/sdk`
+on macOS, then `~/Android/Sdk` on Linux. It installs the platform, NDK, and CMake versions from
+`app/build.gradle.kts` with `sdkmanager` when they are missing.
 
 Install with `adb install`. An APK installed by tapping it in a file manager is marked as
 sideloaded, and Android 13 then greys out the accessibility switch until you open
