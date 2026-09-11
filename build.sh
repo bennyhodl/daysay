@@ -45,6 +45,11 @@ case "${1:-}" in
     ./gradlew bundleRelease
     echo "AAB: app/build/outputs/bundle/release/app-release.aab"
     ;;
+  release-apk)
+    [[ -f keystore.properties ]] || { echo "keystore.properties is missing. See play/RELEASE.md."; exit 1; }
+    ./gradlew assembleRelease
+    echo "APK: app/build/outputs/apk/release/app-release.apk"
+    ;;
   *)
     ./gradlew assembleDebug
     echo "APK: app/build/outputs/apk/debug/app-debug.apk"
