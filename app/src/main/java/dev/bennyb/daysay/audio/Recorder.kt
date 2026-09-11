@@ -10,7 +10,7 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlin.math.min
+import kotlin.math.log10
 import kotlin.math.sqrt
 
 const val SAMPLE_RATE = 16_000
@@ -86,14 +86,23 @@ class Recorder(
     companion object {
         private const val TAG = "Recorder"
 
-        /** Speech level in 0..1 for a meter. RMS with gain, so quiet voices still move the bars. */
+        /**
+         * Speech level in 0..1 for a meter. RMS on a decibel scale: [METER_FLOOR_DB] is silence and
+         * [METER_CEILING_DB] is full height. Ordinary speech sits around -25 dBFS and reaches well
+         * past half height, so the bars answer the voice; only a shout saturates.
+         */
         fun meter(buf: ShortArray, n: Int): Float {
             if (n <= 0) return 0f
             var acc = 0.0
             for (i in 0 until n) { val f = buf[i] / 32768.0; acc += f * f }
             val rms = sqrt(acc / n).toFloat()
-            return min(1f, rms * 6f)
+            if (rms <= 0f) return 0f
+            val db = 20f * log10(rms)
+            return ((db - METER_FLOOR_DB) / (METER_CEILING_DB - METER_FLOOR_DB)).coerceIn(0f, 1f)
         }
+
+        private const val METER_FLOOR_DB = -50f
+        private const val METER_CEILING_DB = -12f
 
         fun durationSeconds(samples: ShortArray): Float = samples.size / SAMPLE_RATE.toFloat()
 
