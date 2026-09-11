@@ -109,18 +109,16 @@ private fun SetupBlock(micGranted: Boolean, accessibilityEnabled: Boolean, setup
     Spacer(Modifier.height(20.dp))
     SetupRow(
         done = micGranted,
-        title = "The app can't hear you yet",
-        detail = "Allow the microphone. Audio stays on the tablet unless you choose a remote model.",
+        title = "Microphone",
+        detail = "Audio stays on the tablet unless you pick a remote model.",
         action = "Allow",
         onAction = setup.onRequestMic,
     )
     Spacer(Modifier.height(12.dp))
     SetupRow(
         done = accessibilityEnabled,
-        title = "The orange button can't reach the app yet",
-        detail = "Turn on the Daysay accessibility service. It is how the app sees the button and types into " +
-            "the focused field. If the switch is greyed out: open App info, tap the menu in the top right, " +
-            "choose Allow restricted settings, then try again.",
+        title = "Accessibility service",
+        detail = "Sees the button and types the text. Greyed out? Allow restricted settings in App info.",
         action = "Open settings",
         onAction = setup.onOpenAccessibilitySettings,
         secondary = "App info",
@@ -139,21 +137,21 @@ private fun SetupRow(
     onSecondary: (() -> Unit)? = null,
 ) {
     InkCard {
-        Row(verticalAlignment = Alignment.Top) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             CheckMark(done)
             Spacer(Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(title, style = MaterialTheme.typography.titleMedium)
-                Spacer(Modifier.height(4.dp))
-                Text(detail, style = MaterialTheme.typography.bodyMedium, color = Paper.graphite)
-                if (!done) {
-                    Spacer(Modifier.height(14.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedButton(onClick = onAction) { Text(action) }
-                        if (secondary != null && onSecondary != null) {
-                            TextButton(onClick = onSecondary) { Text(secondary) }
-                        }
+                Spacer(Modifier.height(2.dp))
+                Text(detail, style = MaterialTheme.typography.bodySmall, color = Paper.graphite)
+            }
+            if (!done) {
+                Spacer(Modifier.width(16.dp))
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    if (secondary != null && onSecondary != null) {
+                        TextButton(onClick = onSecondary) { Text(secondary) }
                     }
+                    OutlinedButton(onClick = onAction) { Text(action) }
                 }
             }
         }

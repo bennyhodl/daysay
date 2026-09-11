@@ -24,7 +24,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -106,12 +105,10 @@ fun Eyebrow(text: String, modifier: Modifier = Modifier) {
     Text(text.uppercase(), style = EyebrowStyle, color = Paper.graphite, modifier = modifier)
 }
 
+/** Section label. Whitespace separates sections: no rule under the eyebrow. */
 @Composable
 fun SectionHeader(text: String, modifier: Modifier = Modifier) {
-    Column(modifier = modifier.fillMaxWidth().padding(top = 32.dp, bottom = 12.dp)) {
-        Eyebrow(text)
-        HorizontalDivider(modifier = Modifier.padding(top = 10.dp), color = Paper.ink)
-    }
+    Eyebrow(text, modifier = modifier.fillMaxWidth().padding(top = 44.dp, bottom = 16.dp))
 }
 
 /** A bordered paper card. No shadow: the display has no depth to fake. */

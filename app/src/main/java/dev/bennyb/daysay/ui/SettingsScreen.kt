@@ -98,10 +98,10 @@ fun SettingsScreen(
     Page(title = "Settings", onBack = onBack) {
         SectionHeader("Model")
         Text("Where speech becomes text. Tap one to use it.", style = MaterialTheme.typography.bodyMedium, color = Paper.graphite)
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(12.dp))
         @Suppress("UNUSED_VARIABLE") val observedRevision = modelRevision
-        ModelCatalog.local.forEach { model ->
-            HorizontalDivider(color = Paper.mist)
+        ModelCatalog.local.forEachIndexed { index, model ->
+            if (index > 0) HorizontalDivider(color = Paper.mist)
             LocalModelRow(model, settings, download)
         }
         ModelCatalog.remote.forEach { model ->
@@ -116,7 +116,6 @@ fun SettingsScreen(
                 onEditKey = { keyRequest = KeyRequest.ForModel(model.provider) },
             )
         }
-        HorizontalDivider(color = Paper.mist)
 
         SectionHeader("Cleanup pass")
         CleanupRow(
@@ -305,7 +304,7 @@ private fun AdvancedSection(settings: AppSettings, micGranted: Boolean, accessib
     val lastKey by Dictation.lastKey.collectAsState()
     val trigger = settings.trigger
 
-    Column(modifier = Modifier.fillMaxWidth().padding(top = 32.dp).animateContentSize()) {
+    Column(modifier = Modifier.fillMaxWidth().padding(top = 44.dp).animateContentSize()) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth().clickable { open = !open },
@@ -316,10 +315,9 @@ private fun AdvancedSection(settings: AppSettings, micGranted: Boolean, accessib
                 contentDescription = if (open) "Collapse" else "Expand",
             )
         }
-        HorizontalDivider(modifier = Modifier.padding(top = 10.dp), color = Paper.ink)
         if (!open) return@Column
 
-        Spacer(Modifier.height(20.dp))
+        Spacer(Modifier.height(16.dp))
         Text("Cleanup instructions", style = MaterialTheme.typography.titleMedium)
         Spacer(Modifier.height(8.dp))
         OutlinedTextField(
