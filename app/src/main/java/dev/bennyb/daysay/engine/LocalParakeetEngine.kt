@@ -8,13 +8,14 @@ import java.io.File
 import java.util.concurrent.Executors
 
 /**
- * Runs whisper.cpp on the device. The context stays loaded between requests because loading
- * takes longer than a short transcription. All native calls run on one thread: whisper.cpp
- * contexts are not thread safe.
+ * Runs whisper.cpp's vendored Parakeet (TDT) support on the device. Detects language on its own;
+ * `settings.language` is ignored. The context stays loaded between requests because loading takes
+ * longer than a short transcription. All native calls run on one thread: parakeet.cpp contexts
+ * are not thread safe.
  */
-object LocalWhisperEngine : TranscriptionEngine {
-    private const val TAG = "LocalWhisper"
-    private val dispatcher = Executors.newSingleThreadExecutor { Thread(it, "whisper") }.asCoroutineDispatcher()
+object LocalParakeetEngine : TranscriptionEngine {
+    private const val TAG = "LocalParakeet"
+    private val dispatcher = Executors.newSingleThreadExecutor { Thread(it, "parakeet") }.asCoroutineDispatcher()
 
     private var ptr = 0L
     private var loadedPath: String? = null
@@ -28,10 +29,10 @@ object LocalWhisperEngine : TranscriptionEngine {
         val file = modelFile ?: throw IllegalStateException("No local model selected")
         if (!file.exists()) throw IllegalStateException("Model not downloaded: ${file.name}")
         ensureLoaded(file)
-        // whisper.cpp needs at least one second of audio; pad short clips with silence.
+        // whisper.cpp needs one second; keep the same floor here so both engines see the same audio.
         val floats = Recorder.toFloats(samples).let { if (it.size < 16_000) it.copyOf(16_000) else it }
         val started = System.currentTimeMillis()
-        val text = WhisperLib.transcribe(ptr, threads, language, "", floats)
+        val text = ParakeetLib.transcribe(ptr, threads, floats)
         Log.i(TAG, "transcribed ${floats.size / 16_000f}s in ${System.currentTimeMillis() - started} ms with $threads threads")
         text.trim()
     }
@@ -39,20 +40,20 @@ object LocalWhisperEngine : TranscriptionEngine {
     private fun ensureLoaded(file: File) {
         if (ptr != 0L && loadedPath == file.absolutePath) return
         releaseLocked()
-        Log.i(TAG, "loading ${file.name}; ${WhisperLib.systemInfo()}")
-        ptr = WhisperLib.initContext(file.absolutePath)
+        Log.i(TAG, "loading ${file.name}; ${ParakeetLib.systemInfo()}")
+        ptr = ParakeetLib.initContext(file.absolutePath)
         if (ptr == 0L) throw IllegalStateException("Could not load model ${file.name}")
         loadedPath = file.absolutePath
     }
 
     private fun releaseLocked() {
         if (ptr != 0L) {
-            WhisperLib.freeContext(ptr)
+            ParakeetLib.freeContext(ptr)
             ptr = 0L
             loadedPath = null
         }
     }
 
-    /** Frees the context from another engine's caller. Must hop to [dispatcher]: whisper.cpp contexts are single-thread. */
+    /** Frees the context from another engine's caller. Must hop to [dispatcher]: parakeet.cpp contexts are single-thread. */
     suspend fun release() = withContext(dispatcher) { releaseLocked() }
 }

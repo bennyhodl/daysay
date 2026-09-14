@@ -27,7 +27,8 @@ demands your attention.
 
 ## What it does
 
-- Runs English and multilingual whisper.cpp models on the device.
+- Runs English and multilingual whisper.cpp models on the device, or Parakeet for faster, more
+  accurate transcription.
 - Continues listening while you use other apps.
 - Shows a small floating panel without taking focus from your work.
 - Delivers each transcript to the focused field and the clipboard.

@@ -9,9 +9,11 @@ import android.util.Log
 import dev.bennyb.daysay.audio.MicForegroundService
 import dev.bennyb.daysay.audio.Recorder
 import dev.bennyb.daysay.cleanup.CleanupClient
+import dev.bennyb.daysay.engine.LocalParakeetEngine
 import dev.bennyb.daysay.engine.LocalWhisperEngine
 import dev.bennyb.daysay.engine.RemoteTranscriptionEngine
 import dev.bennyb.daysay.engine.TranscriptionEngine
+import dev.bennyb.daysay.model.Engine
 import dev.bennyb.daysay.model.ModelCatalog
 import dev.bennyb.daysay.model.ModelManager
 import dev.bennyb.daysay.model.TranscriptStore
@@ -180,7 +182,7 @@ object Dictation {
 
     private fun engineLabel(settings: AppSettings): String = ModelCatalog.displayName(settings.model)
 
-    private fun engineFor(settings: AppSettings): TranscriptionEngine {
+    private suspend fun engineFor(settings: AppSettings): TranscriptionEngine {
         if (settings.isRemote) {
             return RemoteTranscriptionEngine(
                 provider = settings.provider,
@@ -192,8 +194,12 @@ object Dictation {
             ?: throw IllegalStateException("Unknown model ${settings.model}")
         val file = ModelManager.file(app, model)
         if (!file.exists()) throw IllegalStateException("${model.name} is not downloaded. Open Daysay settings.")
-        LocalWhisperEngine.modelFile = file
-        return LocalWhisperEngine
+        // Only one local model is ever in use. Release the other engine's native context so both
+        // are never resident at once (roughly 1.4 GB combined on the DC-1 vs. ~700 MB for one).
+        return when (model.engine) {
+            Engine.WHISPER -> { LocalParakeetEngine.release(); LocalWhisperEngine.also { it.modelFile = file } }
+            Engine.PARAKEET -> { LocalWhisperEngine.release(); LocalParakeetEngine.also { it.modelFile = file } }
+        }
     }
 
     /** Always copies to the clipboard, then tries to put the text into the focused field. */

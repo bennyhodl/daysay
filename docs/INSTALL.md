@@ -20,6 +20,7 @@ The local model choices use approximately this much storage:
 | Large | English | 190 MB |
 | Medium multilingual | Multiple languages | 60 MB |
 | Large multilingual | Multiple languages | 190 MB |
+| Parakeet | European languages | 640 MB |
 
 Allow extra free space while a model downloads. After the download, local transcription works
 without an internet connection.

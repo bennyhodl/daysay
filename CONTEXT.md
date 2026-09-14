@@ -10,8 +10,8 @@
 - **Listening**: the microphone is open and audio is captured.
 - **Model**: the one choice that decides where speech becomes text. One list holds both kinds:
   **local models** (whisper.cpp on the tablet: Small, Medium, Large, Medium multilingual,
-  Large multilingual) and **remote models** (Groq, OpenAI, OpenRouter, marked with a cloud icon).
-  Stored as a catalog id: `base.en-q5_1`, or `remote:GROQ`.
+  Large multilingual, Parakeet) and **remote models** (Groq, OpenAI, OpenRouter, marked with a
+  cloud icon). Stored as a catalog id: `base.en-q5_1`, or `remote:GROQ`.
 - **Provider**: a remote API vendor. Each has a base URL, a default transcription model, and a
   default chat model. One API key per provider, shared by transcription and the cleanup pass.
   `AppSettings.provider` follows the model when a remote model is chosen.
@@ -40,6 +40,7 @@
 | `Recorder` | `audio/Recorder.kt` | 16 kHz mono PCM16 capture. |
 | `MicForegroundService` | `audio/MicForegroundService.kt` | Foreground service with microphone type while listening. Best effort. |
 | `LocalWhisperEngine` | `engine/LocalWhisperEngine.kt` | whisper.cpp through `WhisperLib` JNI. |
+| `LocalParakeetEngine` | `engine/LocalParakeetEngine.kt` | parakeet.cpp through `ParakeetLib` JNI. |
 | `RemoteTranscriptionEngine` | `engine/RemoteTranscriptionEngine.kt` | Provider HTTP calls. |
 | `CleanupClient` | `cleanup/CleanupClient.kt` | Chat completion for the cleanup pass. |
 | `ModelCatalog`, `ModelManager` | `model/ModelManager.kt` | The model list (local and remote), download, delete. |

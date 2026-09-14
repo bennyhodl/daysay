@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "whisper.h"
+#include "parakeet.h"
 
 #define TAG "DaysayJNI"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, TAG, __VA_ARGS__)
@@ -15,6 +16,14 @@ static void log_callback(enum ggml_log_level level, const char *text, void *user
              : level == GGML_LOG_LEVEL_WARN  ? ANDROID_LOG_WARN
              : ANDROID_LOG_DEBUG;
     __android_log_print(prio, "whisper", "%s", text);
+}
+
+static void parakeet_log_callback(enum ggml_log_level level, const char *text, void *user_data) {
+    UNUSED(user_data);
+    int prio = level == GGML_LOG_LEVEL_ERROR ? ANDROID_LOG_ERROR
+             : level == GGML_LOG_LEVEL_WARN  ? ANDROID_LOG_WARN
+             : ANDROID_LOG_DEBUG;
+    __android_log_print(prio, "parakeet", "%s", text);
 }
 
 JNIEXPORT jlong JNICALL
@@ -106,4 +115,78 @@ JNIEXPORT jstring JNICALL
 Java_dev_bennyb_daysay_engine_WhisperLib_systemInfo(JNIEnv *env, jclass clazz) {
     UNUSED(clazz);
     return (*env)->NewStringUTF(env, whisper_print_system_info());
+}
+
+JNIEXPORT jlong JNICALL
+Java_dev_bennyb_daysay_engine_ParakeetLib_initContext(JNIEnv *env, jclass clazz, jstring model_path) {
+    UNUSED(clazz);
+    parakeet_log_set(parakeet_log_callback, NULL);
+    const char *path = (*env)->GetStringUTFChars(env, model_path, NULL);
+    struct parakeet_context_params cparams = parakeet_context_default_params();
+    cparams.use_gpu = false;
+    struct parakeet_context *ctx = parakeet_init_from_file_with_params(path, cparams);
+    if (ctx == NULL) {
+        LOGW("Failed to load parakeet model from %s", path);
+    }
+    (*env)->ReleaseStringUTFChars(env, model_path, path);
+    return (jlong) ctx;
+}
+
+JNIEXPORT void JNICALL
+Java_dev_bennyb_daysay_engine_ParakeetLib_freeContext(JNIEnv *env, jclass clazz, jlong ptr) {
+    UNUSED(env);
+    UNUSED(clazz);
+    if (ptr != 0) {
+        parakeet_free((struct parakeet_context *) ptr);
+    }
+}
+
+JNIEXPORT jstring JNICALL
+Java_dev_bennyb_daysay_engine_ParakeetLib_transcribe(
+        JNIEnv *env, jclass clazz, jlong ptr, jint n_threads, jfloatArray audio) {
+    UNUSED(clazz);
+    struct parakeet_context *ctx = (struct parakeet_context *) ptr;
+    if (ctx == NULL) {
+        return (*env)->NewStringUTF(env, "");
+    }
+
+    jfloat *samples = (*env)->GetFloatArrayElements(env, audio, NULL);
+    const jsize n_samples = (*env)->GetArrayLength(env, audio);
+
+    struct parakeet_full_params params = parakeet_full_default_params(PARAKEET_SAMPLING_GREEDY);
+    params.n_threads = n_threads;
+
+    jstring result;
+    if (parakeet_full(ctx, params, samples, n_samples) != 0) {
+        LOGW("parakeet_full failed");
+        result = (*env)->NewStringUTF(env, "");
+    } else {
+        const int n = parakeet_full_n_segments(ctx);
+        size_t cap = 1024;
+        size_t len = 0;
+        char *buf = (char *) malloc(cap);
+        buf[0] = '\0';
+        for (int i = 0; i < n; i++) {
+            const char *seg = parakeet_full_get_segment_text(ctx, i);
+            size_t sl = strlen(seg);
+            if (len + sl + 1 > cap) {
+                while (len + sl + 1 > cap) cap *= 2;
+                buf = (char *) realloc(buf, cap);
+            }
+            memcpy(buf + len, seg, sl);
+            len += sl;
+            buf[len] = '\0';
+        }
+        result = (*env)->NewStringUTF(env, buf);
+        free(buf);
+    }
+
+    (*env)->ReleaseFloatArrayElements(env, audio, samples, JNI_ABORT);
+    return result;
+}
+
+JNIEXPORT jstring JNICALL
+Java_dev_bennyb_daysay_engine_ParakeetLib_systemInfo(JNIEnv *env, jclass clazz) {
+    UNUSED(clazz);
+    return (*env)->NewStringUTF(env, parakeet_print_system_info());
 }

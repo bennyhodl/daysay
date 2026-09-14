@@ -34,4 +34,4 @@ add_library(daysay SHARED jni.c)
 target_include_directories(daysay PRIVATE
         ${WHISPER_DIR}/include
         ${WHISPER_DIR}/ggml/include)
-target_link_libraries(daysay PRIVATE whisper ${LOG_LIB} android)
+target_link_libraries(daysay PRIVATE whisper parakeet ${LOG_LIB} android)

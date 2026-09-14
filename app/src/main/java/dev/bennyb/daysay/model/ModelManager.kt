@@ -27,17 +27,23 @@ sealed interface Model {
     val isRemote: Boolean
 }
 
+/** Which native engine loads and runs a [LocalModel]. See jni.c for the two JNI bridges. */
+enum class Engine { WHISPER, PARAKEET }
+
 data class LocalModel(
     override val id: String,
     override val name: String,
     val language: String,
     val sizeMb: Int,
     val note: String,
+    val engine: Engine = Engine.WHISPER,
+    private val fileNameOverride: String? = null,
+    private val urlOverride: String? = null,
 ) : Model {
     override val isRemote: Boolean get() = false
     override val detail: String get() = "$language  ·  $sizeMb MB  ·  $note"
-    val fileName: String get() = "ggml-$id.bin"
-    val url: String get() = "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/$fileName"
+    val fileName: String get() = fileNameOverride ?: "ggml-$id.bin"
+    val url: String get() = urlOverride ?: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/$fileName"
 }
 
 data class RemoteModel(val provider: Provider) : Model {
@@ -63,6 +69,12 @@ object ModelCatalog {
         LocalModel("small.en-q5_1", "Large", "English", 190, "best quality, slow"),
         LocalModel("base-q5_1", "Medium multilingual", "Any language", 60, "recommended"),
         LocalModel("small-q5_1", "Large multilingual", "Any language", 190, "best quality, slow"),
+        LocalModel(
+            "parakeet-tdt-0.6b-v3-q8_0", "Parakeet", "European languages", 640, "fastest, most accurate",
+            engine = Engine.PARAKEET,
+            fileNameOverride = "ggml-parakeet-tdt-0.6b-v3-q8_0.bin",
+            urlOverride = "https://huggingface.co/ggml-org/parakeet-GGUF/resolve/main/ggml-parakeet-tdt-0.6b-v3-q8_0.bin",
+        ),
     )
     val remote = Provider.entries.map { RemoteModel(it) }
     val all: List<Model> = local + remote
